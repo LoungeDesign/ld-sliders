@@ -3,7 +3,7 @@
  * Plugin Name: LD Sliders
  * Plugin URI:  https://www.loungedesign.co.uk
  * Description: Create and manage beautiful, fully customisable sliders — no third-party dependencies.
- * Version:     1.2.1
+ * Version:     1.2.2
  * Author:      Lounge Design
  * Author URI:  https://www.loungedesign.co.uk
  * License:     GPL-2.0+
@@ -13,7 +13,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'LD_SLIDERS_VERSION', '1.2.1' );
+define( 'LD_SLIDERS_VERSION', '1.2.2' );
 define( 'LD_SLIDERS_PATH',    plugin_dir_path( __FILE__ ) );
 define( 'LD_SLIDERS_URL',     plugin_dir_url( __FILE__ ) );
 define( 'LD_SLIDERS_TABLE',   'ld_sliders' );
