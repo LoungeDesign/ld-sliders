@@ -1,0 +1,403 @@
+/* LD Sliders — Admin Styles
+   Lounge Design (loungedesign.co.uk) */
+
+/* ── Variables ───────────────────────────────────────────── */
+:root {
+	--ld-brand:        #2563eb;
+	--ld-brand-hover:  #1d4ed8;
+	--ld-danger:       #dc2626;
+	--ld-danger-hover: #b91c1c;
+	--ld-border:       #e5e7eb;
+	--ld-surface:      #ffffff;
+	--ld-bg:           #f9fafb;
+	--ld-text:         #111827;
+	--ld-muted:        #6b7280;
+	--ld-toggle-off:   #d1d5db;
+	--ld-toggle-on:    #2563eb;
+	--ld-radius:       8px;
+	--ld-shadow:       0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+}
+
+/* ── Wrap ─────────────────────────────────────────────────── */
+.ld-sliders-wrap {
+	max-width: 1280px;
+	margin: 0 auto;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	color: var(--ld-text);
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.ld-sliders-header {
+	background: var(--ld-surface);
+	border-bottom: 1px solid var(--ld-border);
+	padding: 0 0 20px;
+	margin-bottom: 24px;
+}
+.ld-sliders-header__inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+.ld-sliders-header__brand {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.ld-sliders-header__brand h1 {
+	margin: 0;
+	padding: 0;
+	font-size: 1.5rem;
+	font-weight: 700;
+	line-height: 1;
+}
+.ld-sliders-header__brand .dashicons {
+	font-size: 1.6rem;
+	color: var(--ld-brand);
+}
+.ld-back-link {
+	display: flex;
+	align-items: center;
+	color: var(--ld-muted);
+	text-decoration: none;
+	transition: color .15s;
+}
+.ld-back-link:hover { color: var(--ld-brand); }
+.ld-back-link .dashicons { font-size: 1.3rem; }
+
+/* ── Header shortcode strip ──────────────────────────────── */
+.ld-header-shortcode {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	font-size: .8rem;
+}
+.ld-header-shortcode label {
+	color: var(--ld-muted);
+	font-weight: 600;
+}
+
+/* ── Buttons ──────────────────────────────────────────────── */
+.ld-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 16px;
+	border-radius: var(--ld-radius);
+	border: 1px solid transparent;
+	font-size: .875rem;
+	font-weight: 600;
+	cursor: pointer;
+	text-decoration: none;
+	transition: background .15s, border-color .15s, opacity .15s;
+	line-height: 1.4;
+}
+.ld-btn--primary {
+	background: var(--ld-brand);
+	color: #fff;
+	border-color: var(--ld-brand);
+}
+.ld-btn--primary:hover {
+	background: var(--ld-brand-hover);
+	border-color: var(--ld-brand-hover);
+	color: #fff;
+}
+.ld-btn--ghost {
+	background: transparent;
+	color: var(--ld-text);
+	border-color: var(--ld-border);
+}
+.ld-btn--ghost:hover {
+	background: var(--ld-bg);
+	color: var(--ld-text);
+}
+.ld-btn--danger {
+	background: var(--ld-danger);
+	color: #fff;
+	border-color: var(--ld-danger);
+}
+.ld-btn--danger:hover {
+	background: var(--ld-danger-hover);
+	color: #fff;
+}
+.ld-btn--sm {
+	padding: 4px 10px;
+	font-size: .8rem;
+}
+.ld-btn--full {
+	width: 100%;
+	justify-content: center;
+}
+
+/* ── Cards ────────────────────────────────────────────────── */
+.ld-card {
+	background: var(--ld-surface);
+	border: 1px solid var(--ld-border);
+	border-radius: var(--ld-radius);
+	box-shadow: var(--ld-shadow);
+	margin-bottom: 20px;
+	overflow: hidden;
+}
+.ld-card__header {
+	padding: 14px 20px;
+	border-bottom: 1px solid var(--ld-border);
+	background: var(--ld-bg);
+}
+.ld-card__title {
+	margin: 0;
+	font-size: .95rem;
+	font-weight: 700;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.ld-card__title .dashicons {
+	color: var(--ld-brand);
+	font-size: 1.1rem;
+}
+.ld-card__body {
+	padding: 20px;
+}
+.ld-card--sticky {
+	position: sticky;
+	top: 32px;
+}
+.ld-card--usage p { font-size: .85rem; margin: 0 0 8px; }
+
+/* ── Edit layout ──────────────────────────────────────────── */
+.ld-edit-layout {
+	display: grid;
+	grid-template-columns: 1fr 280px;
+	gap: 24px;
+	align-items: start;
+}
+@media (max-width: 960px) {
+	.ld-edit-layout { grid-template-columns: 1fr; }
+}
+.ld-edit-sidebar hr {
+	margin: 12px 0;
+	border: none;
+	border-top: 1px solid var(--ld-border);
+}
+
+/* ── Toggles ──────────────────────────────────────────────── */
+.ld-toggles {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+.ld-toggle {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	cursor: pointer;
+}
+.ld-toggle input[type="checkbox"] {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+.ld-toggle__slider {
+	position: relative;
+	flex-shrink: 0;
+	width: 44px;
+	height: 24px;
+	background: var(--ld-toggle-off);
+	border-radius: 999px;
+	transition: background .2s;
+	margin-top: 2px;
+}
+.ld-toggle__slider::after {
+	content: '';
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 18px;
+	height: 18px;
+	background: #fff;
+	border-radius: 50%;
+	box-shadow: 0 1px 3px rgba(0,0,0,.2);
+	transition: transform .2s;
+}
+.ld-toggle input:checked ~ .ld-toggle__slider {
+	background: var(--ld-toggle-on);
+}
+.ld-toggle input:checked ~ .ld-toggle__slider::after {
+	transform: translateX(20px);
+}
+.ld-toggle__label {
+	display: flex;
+	flex-direction: column;
+	font-size: .9rem;
+	font-weight: 600;
+	line-height: 1.4;
+}
+.ld-toggle__label small {
+	font-weight: 400;
+	color: var(--ld-muted);
+	font-size: .8rem;
+}
+
+/* ── Sub-fields ───────────────────────────────────────────── */
+.ld-sub-field {
+	background: var(--ld-bg);
+	border: 1px solid var(--ld-border);
+	border-radius: 6px;
+	padding: 12px 16px;
+	margin-left: 56px;
+	display: none;
+}
+.ld-sub-field.is-visible { display: block; }
+.ld-sub-field label {
+	display: block;
+	font-size: .85rem;
+	font-weight: 600;
+	margin-bottom: 6px;
+}
+.ld-sub-field input { width: 100px; }
+
+/* ── Field helpers ────────────────────────────────────────── */
+.ld-field-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin-bottom: 16px;
+}
+.ld-field {
+	flex: 1;
+	min-width: 160px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+.ld-field label {
+	font-size: .85rem;
+	font-weight: 600;
+}
+.ld-field input,
+.ld-field select,
+.ld-field textarea {
+	border: 1px solid var(--ld-border);
+	border-radius: 6px;
+	padding: 7px 10px;
+	font-size: .875rem;
+	width: 100%;
+	box-sizing: border-box;
+	background: #fff;
+	color: var(--ld-text);
+	transition: border-color .15s;
+}
+.ld-field input:focus,
+.ld-field select:focus,
+.ld-field textarea:focus {
+	border-color: var(--ld-brand);
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+}
+.ld-field--with-unit .ld-input-unit {
+	display: flex;
+}
+.ld-input-unit input {
+	border-radius: 6px 0 0 6px;
+	border-right: none;
+	flex: 1;
+}
+.ld-input-unit select {
+	border-radius: 0 6px 6px 0;
+	width: auto;
+	flex-shrink: 0;
+	background: var(--ld-bg);
+}
+.ld-label--large {
+	font-size: 1rem;
+	font-weight: 700;
+	display: block;
+	margin-bottom: 8px;
+}
+.ld-hint {
+	font-size: .8rem;
+	color: var(--ld-muted);
+	margin: 0 0 12px;
+}
+
+/* ── Breakpoints ──────────────────────────────────────────── */
+.ld-breakpoint {
+	border: 1px solid var(--ld-border);
+	border-radius: 6px;
+	padding: 16px;
+	margin-bottom: 16px;
+}
+.ld-breakpoint__label {
+	font-size: .9rem;
+	font-weight: 700;
+	margin: 0 0 12px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--ld-muted);
+}
+.ld-breakpoint__label .dashicons { font-size: 1rem; }
+
+/* ── List table extras ────────────────────────────────────── */
+.ld-sliders-table td { vertical-align: middle; }
+.ld-actions { display: flex; gap: 8px; }
+code.ld-copyable {
+	cursor: pointer;
+	transition: background .15s;
+	padding: 3px 6px;
+	border-radius: 4px;
+	font-size: .8rem;
+}
+code.ld-copyable:hover { background: #dbeafe; }
+.ld-copyable.ld-copied { background: #d1fae5 !important; }
+
+/* ── Sidebar info ─────────────────────────────────────────── */
+.ld-sidebar-info p {
+	font-size: .82rem;
+	margin: 0 0 8px;
+	word-break: break-all;
+}
+
+/* ── Empty state ──────────────────────────────────────────── */
+.ld-empty-state {
+	text-align: center;
+	padding: 60px 20px;
+	background: var(--ld-surface);
+	border: 1px dashed var(--ld-border);
+	border-radius: var(--ld-radius);
+	margin-bottom: 20px;
+}
+.ld-empty-state__icon { font-size: 3rem; color: var(--ld-border); }
+.ld-empty-state h2 { margin: 12px 0 8px; font-size: 1.25rem; }
+.ld-empty-state p { color: var(--ld-muted); margin-bottom: 20px; }
+
+/* ── Name field ───────────────────────────────────────────── */
+.ld-card__body input.large-text {
+	width: 100%;
+	border: 1px solid var(--ld-border);
+	border-radius: 6px;
+	padding: 9px 12px;
+	font-size: 1rem;
+	transition: border-color .15s;
+}
+.ld-card__body input.large-text:focus {
+	border-color: var(--ld-brand);
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+}
+
+/* ── Footer ───────────────────────────────────────────────── */
+.ld-footer-credit {
+	text-align: right;
+	font-size: .8rem;
+	color: var(--ld-muted);
+	margin-top: 32px;
+}
+
+/* ── Overlay panels ───────────────────────────────────── */
+.ld-overlay-panel { margin-bottom: 20px; }
+.ld-overlay-fields { display: none; padding: 12px 16px; background: var(--ld-bg); border: 1px solid var(--ld-border); border-radius: 6px; margin-top: 8px; margin-left: 56px; }
+input[type="color"] { width: 48px; height: 38px; padding: 2px; border: 1px solid var(--ld-border); border-radius: 6px; cursor: pointer; }

@@ -1,0 +1,102 @@
+/* LD Sliders — Public Styles
+   Lounge Design (loungedesign.co.uk) */
+
+/* ── Wrapper ────────────────────────────────────────────── */
+.ld-slider-wrapper {
+	position: relative;
+	overflow: hidden;
+	user-select: none;
+	-webkit-user-select: none;
+	outline: none;
+}
+
+/* ── Track ──────────────────────────────────────────────── */
+.ld-carousel {
+	display: flex;
+	align-items: stretch;
+	will-change: transform;
+	cursor: grab;
+}
+.ld-carousel:active {
+	cursor: grabbing;
+}
+
+/* ── Cells ──────────────────────────────────────────────── */
+.ld-carousel-cell {
+	flex-shrink: 0;
+	box-sizing: border-box;
+	min-height: 1px;
+}
+
+/* ── Prev / Next buttons ────────────────────────────────── */
+.ld-slider-btn {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 10;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	border: none;
+	border-radius: 50%;
+	background: rgba(0,0,0,.5);
+	color: #fff;
+	cursor: pointer;
+	transition: background .2s;
+	padding: 0;
+}
+.ld-slider-btn:hover {
+	background: rgba(0,0,0,.75);
+}
+.ld-slider-btn:disabled {
+	opacity: .35;
+	cursor: default;
+}
+.ld-slider-btn svg {
+	width: 20px;
+	height: 20px;
+	display: block;
+}
+.ld-slider-btn--prev { left: 12px; }
+.ld-slider-btn--next { right: 12px; }
+
+/* ── Dots ───────────────────────────────────────────────── */
+.ld-slider-dots {
+	display: flex;
+	justify-content: center;
+	gap: 8px;
+	padding: 12px 0 4px;
+}
+.ld-slider-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	border: none;
+	background: #ccc;
+	padding: 0;
+	cursor: pointer;
+	transition: background .2s, transform .2s;
+}
+.ld-slider-dot.is-selected {
+	background: #333;
+	transform: scale(1.25);
+}
+
+/* ── Accessibility ──────────────────────────────────────── */
+.ld-sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
+
+/* ── Reduced motion ─────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+	.ld-carousel {
+		transition: none !important;
+	}
+}
