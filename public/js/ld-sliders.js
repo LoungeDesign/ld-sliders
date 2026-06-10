@@ -1,5 +1,5 @@
 /**
- * LD Sliders — core carousel engine v1.2.1
+ * LD Sliders — core carousel engine v1.2.3
  * Original implementation by Lounge Design (loungedesign.co.uk)
  * No third-party dependencies.
  */
@@ -77,34 +77,37 @@
 		this.btnNext    = null;
 		this.dotsWrap   = null;
 
+		// Store cell offsets from natural DOM positions BEFORE any transform
+		// so goTo always calculates from ground truth, not current translate.
+		this._cellNaturalOffsets = [];
+
 		this._setup();
 	}
 
 	LDCarousel.prototype._setup = function () {
 		var self = this;
 
-		// watchCSS check
 		if ( this.config.watchCSS ) {
 			var after = window.getComputedStyle( this.wrapper, ':after' ).content;
 			if ( after !== '"flickity"' && after !== "'flickity'" ) return;
 		}
 
-		// Ensure wrapper has position:relative
-		var pos = window.getComputedStyle( this.wrapper ).position;
-		if ( pos === 'static' ) this.wrapper.style.position = 'relative';
+		if ( window.getComputedStyle( this.wrapper ).position === 'static' ) {
+			this.wrapper.style.position = 'relative';
+		}
 
-		// ── Fix 1: overflow ──────────────────────────────────
-		// Apply overflow DIRECTLY on the wrapper element here in JS
-		// so it always reflects the current setting regardless of CSS order.
+		// Overflow
 		if ( this.config.overflowVisible ) {
-			this.wrapper.style.overflow    = 'visible';
-			this.wrapper.style.clipPath    = 'none';
+			this.wrapper.style.overflow       = 'visible';
+			this.wrapper.style.clipPath       = 'none';
 			this.wrapper.style.webkitClipPath = 'none';
+			// Force all ancestor elements up to the section to allow overflow
+			this._forceParentOverflow();
 		} else {
 			this.wrapper.style.overflow = 'hidden';
 		}
 
-		// Build or find inner track
+		// Build track
 		this.track = this.wrapper.querySelector( '.ld-carousel' );
 		if ( !this.track ) {
 			this.track = document.createElement( 'div' );
@@ -130,15 +133,23 @@
 		if ( this.config.asNavFor ) this._bindAsNavFor();
 
 		var go = function() {
-			self.goTo( self.config.initialIndex || 0, false );
-			if ( self.config.lazyLoad ) self._lazyLoadVisible();
-			if ( self.config.autoPlay ) {
-				self._startAutoPlay();
-				if ( self.config.pauseAutoPlayOnHover ) {
-					self.wrapper.addEventListener( 'mouseenter', self._stopAutoPlay.bind(self) );
-					self.wrapper.addEventListener( 'mouseleave', self._startAutoPlay.bind(self) );
+			// Reset track so we can measure natural offsets cleanly
+			setTransition( self.track, 'none' );
+			setTransform(  self.track, 'translateX(0px)' );
+
+			// Let the browser paint, then measure and go to initial index
+			requestAnimationFrame( function() {
+				self._measureCells();
+				self.goTo( self.config.initialIndex || 0, false );
+				if ( self.config.lazyLoad ) self._lazyLoadVisible();
+				if ( self.config.autoPlay ) {
+					self._startAutoPlay();
+					if ( self.config.pauseAutoPlayOnHover ) {
+						self.wrapper.addEventListener( 'mouseenter', self._stopAutoPlay.bind(self) );
+						self.wrapper.addEventListener( 'mouseleave', self._startAutoPlay.bind(self) );
+					}
 				}
-			}
+			});
 		};
 
 		if ( this.config.imagesLoaded ) {
@@ -146,6 +157,18 @@
 		} else {
 			go();
 		}
+	};
+
+	/**
+	 * Measure and store each cell's natural left offset from the track.
+	 * Called once on init and again on resize.
+	 * This is the ground truth — never affected by current translate value.
+	 */
+	LDCarousel.prototype._measureCells = function () {
+		var trackLeft = this.track.getBoundingClientRect().left;
+		this._cellNaturalOffsets = this.cells.map( function(cell) {
+			return cell.getBoundingClientRect().left - trackLeft;
+		});
 	};
 
 	/* ─── Nav ──────────────────────────────────────────────── */
@@ -162,10 +185,9 @@
 			this.btnNext.setAttribute( 'aria-label', 'Next' );
 			this.btnPrev.innerHTML = this._arrowSVG( 'prev' );
 			this.btnNext.innerHTML = this._arrowSVG( 'next' );
+			this.btnPrev.type = 'button';
+			this.btnNext.type = 'button';
 
-			// ── Fix 2: previous arrow ────────────────────────
-			// Explicitly bind to this.previous / this.next so
-			// "this" context is always correct inside the handler.
 			this.btnPrev.addEventListener( 'click', function(e) {
 				e.preventDefault();
 				e.stopPropagation();
@@ -184,9 +206,6 @@
 		if ( this.config.pageDots ) {
 			this.dotsWrap = document.createElement( 'div' );
 			this.dotsWrap.className = 'ld-slider-dots';
-			// ── Fix 4: append dots AFTER the wrapper, not inside it,
-			// so they sit below the slider and are never clipped.
-			// We insert as a sibling immediately after the wrapper.
 			if ( this.wrapper.parentNode ) {
 				this.wrapper.parentNode.insertBefore( this.dotsWrap, this.wrapper.nextSibling );
 			} else {
@@ -212,6 +231,7 @@
 		for ( var i = 0; i < groups; i++ ) {
 			( function(idx) {
 				var dot = document.createElement( 'button' );
+				dot.type      = 'button';
 				dot.className = 'ld-slider-dot';
 				dot.setAttribute( 'aria-label', 'Go to slide ' + (idx+1) );
 				dot.addEventListener( 'click', function() { self.goTo(idx); } );
@@ -230,24 +250,12 @@
 	};
 
 	LDCarousel.prototype._buildOverlay = function ( side, color, opacity, width ) {
-		var rgb = hexToRgb( color || '#ffffff' );
-		var a   = ( opacity != null ? opacity : 100 ) / 100;
-		var w   = width || 120;
-
-		// ── Fix 3: gradient direction ────────────────────────
-		// Left overlay:  solid on LEFT,  fades to transparent on RIGHT
-		// Right overlay: solid on RIGHT, fades to transparent on LEFT
-		var gradient;
-		if ( side === 'left' ) {
-			gradient = 'linear-gradient(to right, rgba(' + rgb + ',' + a + ') 0%, rgba(' + rgb + ',0) 100%)';
-		} else {
-			gradient = 'linear-gradient(to left, rgba(' + rgb + ',' + a + ') 0%, rgba(' + rgb + ',0) 100%)';
-		}
-
-		// Use rgba array correctly
-		var solid = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + a + ')';
+		var rgb    = hexToRgb( color || '#ffffff' );
+		var a      = ( opacity != null ? opacity : 100 ) / 100;
+		var w      = width || 120;
+		var solid  = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + a + ')';
 		var clear  = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0)';
-		gradient   = side === 'left'
+		var gradient = side === 'left'
 			? 'linear-gradient(to right,' + solid + ' 0%,' + clear + ' 100%)'
 			: 'linear-gradient(to left,'  + solid + ' 0%,' + clear + ' 100%)';
 
@@ -264,8 +272,35 @@
 			'z-index:5',
 			'background:' + gradient
 		].join(';');
-
 		this.wrapper.appendChild( el );
+	};
+
+	/**
+	 * Walk up the DOM and force overflow:visible on Breakdance column/section
+	 * wrappers so the slider can bleed past its container edges.
+	 * Stops at the body element.
+	 */
+	LDCarousel.prototype._forceParentOverflow = function () {
+		var el     = this.wrapper.parentNode;
+		var safety = 0;
+		while ( el && el !== document.body && safety < 8 ) {
+			var tag = el.tagName ? el.tagName.toLowerCase() : '';
+			if ( tag === 'section' || tag === 'main' || tag === 'article' ) break;
+			var cls = el.className || '';
+			// Only touch Breakdance column/row wrappers — leave everything else alone
+			if (
+				cls.indexOf('bde-column') !== -1 ||
+				cls.indexOf('bde-columns') !== -1 ||
+				cls.indexOf('bde-section') !== -1 ||
+				cls.indexOf('bde-div') !== -1
+			) {
+				el.style.overflow       = 'visible';
+				el.style.clipPath       = 'none';
+				el.style.webkitClipPath = 'none';
+			}
+			el = el.parentNode;
+			safety++;
+		}
 	};
 
 	/* ─── Positioning ──────────────────────────────────────── */
@@ -275,26 +310,20 @@
 		return ( g > 1 ) ? Math.ceil( this.cells.length / g ) : this.cells.length;
 	};
 
-	LDCarousel.prototype._currentTranslate = function () {
-		var m = window.getComputedStyle( this.track ).transform;
-		if ( !m || m === 'none' ) return 0;
-		var parts = m.match( /matrix.*\((.+)\)/ );
-		return parts ? parseFloat( parts[1].split(',')[4] ) : 0;
-	};
-
+	/**
+	 * Calculate offset using stored natural positions — never reads current
+	 * transform, so prev/next always works regardless of current slide.
+	 */
 	LDCarousel.prototype._offsetForCell = function ( cellIdx ) {
-		var cell = this.cells[ cellIdx ];
-		if ( !cell ) return 0;
+		if ( !this.cells[ cellIdx ] ) return 0;
 
-		var trackLeft = this.track.getBoundingClientRect().left;
-		var cellLeft  = cell.getBoundingClientRect().left;
-		var current   = this._currentTranslate();
-		var raw       = ( cellLeft - trackLeft ) - current;
+		// Use stored natural offset (measured when track was at translateX(0))
+		var raw = this._cellNaturalOffsets[ cellIdx ] || 0;
 
 		if ( this.config.cellAlign === 'center' ) {
-			raw -= ( this.wrapper.offsetWidth - cell.offsetWidth ) / 2;
+			raw -= ( this.wrapper.offsetWidth - this.cells[cellIdx].offsetWidth ) / 2;
 		} else if ( this.config.cellAlign === 'right' ) {
-			raw -= ( this.wrapper.offsetWidth - cell.offsetWidth );
+			raw -= ( this.wrapper.offsetWidth - this.cells[cellIdx].offsetWidth );
 		}
 
 		if ( this.config.contain ) {
@@ -403,6 +432,13 @@
 
 	/* ─── Drag ─────────────────────────────────────────────── */
 
+	LDCarousel.prototype._currentTranslate = function () {
+		var m = window.getComputedStyle( this.track ).transform;
+		if ( !m || m === 'none' ) return 0;
+		var parts = m.match( /matrix.*\((.+)\)/ );
+		return parts ? parseFloat( parts[1].split(',')[4] ) : 0;
+	};
+
 	LDCarousel.prototype._bindDrag = function () {
 		var self = this;
 		var el   = this.track;
@@ -501,8 +537,14 @@
 		window.addEventListener( 'resize', function() {
 			clearTimeout(t);
 			t = setTimeout( function() {
-				self.goTo( self.index, false );
-				if ( self.dotsWrap ) self._buildDots();
+				// Remeasure cells from scratch on resize
+				setTransition( self.track, 'none' );
+				setTransform(  self.track, 'translateX(0px)' );
+				requestAnimationFrame( function() {
+					self._measureCells();
+					self.goTo( self.index, false );
+					if ( self.dotsWrap ) self._buildDots();
+				});
 			}, 150 );
 		});
 	};
