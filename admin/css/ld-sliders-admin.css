@@ -401,3 +401,19 @@ code.ld-copyable:hover { background: #dbeafe; }
 .ld-overlay-panel { margin-bottom: 20px; }
 .ld-overlay-fields { display: none; padding: 12px 16px; background: var(--ld-bg); border: 1px solid var(--ld-border); border-radius: 6px; margin-top: 8px; margin-left: 56px; }
 input[type="color"] { width: 48px; height: 38px; padding: 2px; border: 1px solid var(--ld-border); border-radius: 6px; cursor: pointer; }
+
+/* ── How to use banner ───────────────────────────────── */
+.ld-how-to-use {
+	background: #eff6ff;
+	border: 1px solid #bfdbfe;
+	border-radius: var(--ld-radius);
+	padding: 12px 16px;
+	margin-bottom: 16px;
+	font-size: .875rem;
+	line-height: 1.6;
+}
+.ld-how-to-use code {
+	background: #dbeafe;
+	padding: 1px 5px;
+	border-radius: 4px;
+}

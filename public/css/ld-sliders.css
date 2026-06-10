@@ -1,10 +1,10 @@
-/* LD Sliders — Public Styles
+/* LD Sliders — Public Styles v1.2.0
    Lounge Design (loungedesign.co.uk) */
 
 /* ── Wrapper ────────────────────────────────────────────── */
 .ld-slider-wrapper {
 	position: relative;
-	overflow: hidden;
+	overflow: hidden;         /* default — clips both edges    */
 	user-select: none;
 	-webkit-user-select: none;
 	outline: none;
@@ -28,7 +28,7 @@
 	min-height: 1px;
 }
 
-/* ── Prev / Next buttons ────────────────────────────────── */
+/* ── Prev / Next ────────────────────────────────────────── */
 .ld-slider-btn {
 	position: absolute;
 	top: 50%;
@@ -47,20 +47,11 @@
 	transition: background .2s;
 	padding: 0;
 }
-.ld-slider-btn:hover {
-	background: rgba(0,0,0,.75);
-}
-.ld-slider-btn:disabled {
-	opacity: .35;
-	cursor: default;
-}
-.ld-slider-btn svg {
-	width: 20px;
-	height: 20px;
-	display: block;
-}
-.ld-slider-btn--prev { left: 12px; }
-.ld-slider-btn--next { right: 12px; }
+.ld-slider-btn:hover   { background: rgba(0,0,0,.75); }
+.ld-slider-btn:disabled { opacity: .35; cursor: default; }
+.ld-slider-btn svg     { width: 20px; height: 20px; display: block; }
+.ld-slider-btn--prev   { left: 12px; }
+.ld-slider-btn--next   { right: 12px; }
 
 /* ── Dots ───────────────────────────────────────────────── */
 .ld-slider-dots {
@@ -87,8 +78,7 @@
 /* ── Accessibility ──────────────────────────────────────── */
 .ld-sr-only {
 	position: absolute;
-	width: 1px;
-	height: 1px;
+	width: 1px; height: 1px;
 	overflow: hidden;
 	clip: rect(0 0 0 0);
 	white-space: nowrap;
@@ -96,7 +86,5 @@
 
 /* ── Reduced motion ─────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-	.ld-carousel {
-		transition: none !important;
-	}
+	.ld-carousel { transition: none !important; }
 }

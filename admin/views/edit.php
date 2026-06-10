@@ -28,10 +28,10 @@ function ld_selected( $settings, $key, $value ) {
 			</div>
 			<?php if ( $is_edit ) : ?>
 			<div class="ld-header-shortcode">
-				<label>Shortcode</label>
-				<code class="ld-copyable"><?php echo esc_html( $shortcode ); ?></code>
-				<label>Class</label>
-				<code class="ld-copyable">.<?php echo esc_html( $class_name ); ?></code>
+				<label>Container class</label>
+				<code class="ld-copyable">ld-slider-<?php echo absint($slider->id); ?></code>
+				<label>Cell class</label>
+				<code class="ld-copyable">ld-carousel-cell</code>
 			</div>
 			<?php endif; ?>
 		</div>
@@ -335,7 +335,7 @@ function ld_selected( $settings, $key, $value ) {
 							<div class="ld-sidebar-info">
 								<p><strong>Slider ID:</strong> <?php echo absint($slider->id); ?></p>
 								<p><strong>Slug:</strong> <?php echo esc_html($slider->slug); ?></p>
-								<p><strong>Shortcode:</strong><br><code class="ld-copyable"><?php echo esc_html($shortcode); ?></code></p>
+								
 								<p><strong>CSS Class:</strong><br><code class="ld-copyable">.<?php echo esc_html($class_name); ?></code></p>
 							</div>
 							<hr>
@@ -350,10 +350,11 @@ function ld_selected( $settings, $key, $value ) {
 				<div class="ld-card ld-card--usage">
 					<div class="ld-card__header"><h3 class="ld-card__title">How to use</h3></div>
 					<div class="ld-card__body">
-						<p>1. Drop the shortcode into any page or post.</p>
-						<p>2. Add child elements with class <code>.ld-carousel-cell</code> inside the slider wrapper.</p>
-						<p>3. For lazy loading, use <code>data-src</code> instead of <code>src</code> on images.</p>
-						<p>4. In Breakdance, use the <strong>LD Slider</strong> element and drop any content inside each slide.</p>
+						<p>1. Copy the <strong>container class</strong> from the header above.</p>
+						<p>2. In your page builder (Breakdance etc.), add a Div and paste that class onto it.</p>
+						<p>3. Add child Divs inside it, each with class <code>ld-carousel-cell</code>.</p>
+						<p>4. Drop any content you like inside each cell — images, text, buttons, anything.</p>
+						<p>5. For lazy loading, use <code>data-src</code> instead of <code>src</code> on images.</p>
 					</div>
 				</div>
 			</div>
