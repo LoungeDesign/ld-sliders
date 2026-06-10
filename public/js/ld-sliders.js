@@ -1,11 +1,7 @@
 /**
- * LD Sliders — core carousel engine v1.2.0
+ * LD Sliders — core carousel engine v1.2.1
  * Original implementation by Lounge Design (loungedesign.co.uk)
  * No third-party dependencies.
- *
- * Usage: add class "ld-slider-{id}" to any container div.
- *        Add class "ld-carousel-cell" to each child slide.
- *        Settings are loaded automatically from window.LDSliderConfigs.
  */
 ( function () {
 	'use strict';
@@ -17,13 +13,13 @@
 	}
 
 	function setTransform( el, val ) {
-		el.style.transform        = val;
-		el.style.webkitTransform  = val;
+		el.style.transform       = val;
+		el.style.webkitTransform = val;
 	}
 
 	function setTransition( el, val ) {
-		el.style.transition        = val;
-		el.style.webkitTransition  = val;
+		el.style.transition       = val;
+		el.style.webkitTransition = val;
 	}
 
 	function hexToRgb( hex ) {
@@ -46,11 +42,11 @@
 	/* ─── imagesLoaded ─────────────────────────────────────── */
 
 	function waitForImages( container, cb ) {
-		var imgs   = container.querySelectorAll( 'img' );
-		var total  = imgs.length;
+		var imgs  = container.querySelectorAll( 'img' );
+		var total = imgs.length;
 		if ( !total ) { cb(); return; }
-		var loaded = 0;
-		function onLoad() { if ( ++loaded >= total ) cb(); }
+		var done  = 0;
+		function onLoad() { if ( ++done >= total ) cb(); }
 		imgs.forEach( function(img) {
 			if ( img.complete ) { onLoad(); }
 			else {
@@ -65,6 +61,7 @@
 	function LDCarousel( wrapper, config ) {
 		this.wrapper    = wrapper;
 		this.config     = config;
+		this.track      = null;
 		this.cells      = [];
 		this.index      = 0;
 		this.isDragging = false;
@@ -92,15 +89,24 @@
 			if ( after !== '"flickity"' && after !== "'flickity'" ) return;
 		}
 
-		// Ensure wrapper has position:relative so overlays and buttons position correctly
-		if ( window.getComputedStyle( this.wrapper ).position === 'static' ) {
-			this.wrapper.style.position = 'relative';
+		// Ensure wrapper has position:relative
+		var pos = window.getComputedStyle( this.wrapper ).position;
+		if ( pos === 'static' ) this.wrapper.style.position = 'relative';
+
+		// ── Fix 1: overflow ──────────────────────────────────
+		// Apply overflow DIRECTLY on the wrapper element here in JS
+		// so it always reflects the current setting regardless of CSS order.
+		if ( this.config.overflowVisible ) {
+			this.wrapper.style.overflow    = 'visible';
+			this.wrapper.style.clipPath    = 'none';
+			this.wrapper.style.webkitClipPath = 'none';
+		} else {
+			this.wrapper.style.overflow = 'hidden';
 		}
 
-		// Build inner track if not present
+		// Build or find inner track
 		this.track = this.wrapper.querySelector( '.ld-carousel' );
 		if ( !this.track ) {
-			// Wrap all ld-carousel-cell children in a track div
 			this.track = document.createElement( 'div' );
 			this.track.className = 'ld-carousel';
 			var cells = Array.prototype.slice.call(
@@ -142,7 +148,7 @@
 		}
 	};
 
-	/* ─── Navigation UI ────────────────────────────────────── */
+	/* ─── Nav ──────────────────────────────────────────────── */
 
 	LDCarousel.prototype._buildNav = function () {
 		var self = this;
@@ -156,8 +162,21 @@
 			this.btnNext.setAttribute( 'aria-label', 'Next' );
 			this.btnPrev.innerHTML = this._arrowSVG( 'prev' );
 			this.btnNext.innerHTML = this._arrowSVG( 'next' );
-			this.btnPrev.addEventListener( 'click', function(){ self.previous(); } );
-			this.btnNext.addEventListener( 'click', function(){ self.next(); } );
+
+			// ── Fix 2: previous arrow ────────────────────────
+			// Explicitly bind to this.previous / this.next so
+			// "this" context is always correct inside the handler.
+			this.btnPrev.addEventListener( 'click', function(e) {
+				e.preventDefault();
+				e.stopPropagation();
+				self.previous();
+			});
+			this.btnNext.addEventListener( 'click', function(e) {
+				e.preventDefault();
+				e.stopPropagation();
+				self.next();
+			});
+
 			this.wrapper.appendChild( this.btnPrev );
 			this.wrapper.appendChild( this.btnNext );
 		}
@@ -165,14 +184,21 @@
 		if ( this.config.pageDots ) {
 			this.dotsWrap = document.createElement( 'div' );
 			this.dotsWrap.className = 'ld-slider-dots';
-			this.wrapper.appendChild( this.dotsWrap );
+			// ── Fix 4: append dots AFTER the wrapper, not inside it,
+			// so they sit below the slider and are never clipped.
+			// We insert as a sibling immediately after the wrapper.
+			if ( this.wrapper.parentNode ) {
+				this.wrapper.parentNode.insertBefore( this.dotsWrap, this.wrapper.nextSibling );
+			} else {
+				this.wrapper.appendChild( this.dotsWrap );
+			}
 			this._buildDots();
 		}
 	};
 
 	LDCarousel.prototype._arrowSVG = function ( dir ) {
 		if ( this.config.arrowShape && this.config.arrowShape !== 'default' ) {
-			return '<svg viewBox="0 0 100 100"><path d="' + this.config.arrowShape + '"/></svg>';
+			return '<svg viewBox="0 0 100 100" fill="currentColor"><path d="' + this.config.arrowShape + '"/></svg>';
 		}
 		return dir === 'prev'
 			? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>'
@@ -188,7 +214,7 @@
 				var dot = document.createElement( 'button' );
 				dot.className = 'ld-slider-dot';
 				dot.setAttribute( 'aria-label', 'Go to slide ' + (idx+1) );
-				dot.addEventListener( 'click', function(){ self.goTo(idx); } );
+				dot.addEventListener( 'click', function() { self.goTo(idx); } );
 				self.dotsWrap.appendChild( dot );
 			})( i );
 		}
@@ -199,29 +225,46 @@
 
 	LDCarousel.prototype._buildOverlays = function () {
 		var c = this.config;
-		this._buildOverlay( 'left',  c.overlayLeft,  c.overlayLeftColor,  c.overlayLeftOpacity,  c.overlayLeftWidth );
-		this._buildOverlay( 'right', c.overlayRight, c.overlayRightColor, c.overlayRightOpacity, c.overlayRightWidth );
+		if ( c.overlayLeft )  this._buildOverlay( 'left',  c.overlayLeftColor,  c.overlayLeftOpacity,  c.overlayLeftWidth );
+		if ( c.overlayRight ) this._buildOverlay( 'right', c.overlayRightColor, c.overlayRightOpacity, c.overlayRightWidth );
 	};
 
-	LDCarousel.prototype._buildOverlay = function ( side, enabled, color, opacity, width ) {
-		if ( !enabled ) return;
-		var rgb  = hexToRgb( color || '#ffffff' );
-		var a    = ( opacity || 100 ) / 100;
-		var dir  = side === 'left' ? 'to left' : 'to right';
-		var pos  = side === 'left' ? 'left:0;' : 'right:0;';
-		var el   = document.createElement( 'div' );
+	LDCarousel.prototype._buildOverlay = function ( side, color, opacity, width ) {
+		var rgb = hexToRgb( color || '#ffffff' );
+		var a   = ( opacity != null ? opacity : 100 ) / 100;
+		var w   = width || 120;
+
+		// ── Fix 3: gradient direction ────────────────────────
+		// Left overlay:  solid on LEFT,  fades to transparent on RIGHT
+		// Right overlay: solid on RIGHT, fades to transparent on LEFT
+		var gradient;
+		if ( side === 'left' ) {
+			gradient = 'linear-gradient(to right, rgba(' + rgb + ',' + a + ') 0%, rgba(' + rgb + ',0) 100%)';
+		} else {
+			gradient = 'linear-gradient(to left, rgba(' + rgb + ',' + a + ') 0%, rgba(' + rgb + ',0) 100%)';
+		}
+
+		// Use rgba array correctly
+		var solid = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + a + ')';
+		var clear  = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0)';
+		gradient   = side === 'left'
+			? 'linear-gradient(to right,' + solid + ' 0%,' + clear + ' 100%)'
+			: 'linear-gradient(to left,'  + solid + ' 0%,' + clear + ' 100%)';
+
+		var el = document.createElement( 'div' );
 		el.className = 'ld-overlay ld-overlay--' + side;
 		el.setAttribute( 'aria-hidden', 'true' );
 		el.style.cssText = [
 			'position:absolute',
 			'top:0',
-			pos,
+			( side === 'left' ? 'left:0' : 'right:0' ),
 			'bottom:0',
-			'width:' + ( width || 120 ) + 'px',
+			'width:' + w + 'px',
 			'pointer-events:none',
 			'z-index:5',
-			'background:linear-gradient(' + dir + ',rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + a + ') 0%,rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0) 100%)'
+			'background:' + gradient
 		].join(';');
+
 		this.wrapper.appendChild( el );
 	};
 
@@ -232,24 +275,28 @@
 		return ( g > 1 ) ? Math.ceil( this.cells.length / g ) : this.cells.length;
 	};
 
+	LDCarousel.prototype._currentTranslate = function () {
+		var m = window.getComputedStyle( this.track ).transform;
+		if ( !m || m === 'none' ) return 0;
+		var parts = m.match( /matrix.*\((.+)\)/ );
+		return parts ? parseFloat( parts[1].split(',')[4] ) : 0;
+	};
+
 	LDCarousel.prototype._offsetForCell = function ( cellIdx ) {
-		var cell      = this.cells[ cellIdx ];
+		var cell = this.cells[ cellIdx ];
 		if ( !cell ) return 0;
 
-		// Get raw offset of cell relative to track
 		var trackLeft = this.track.getBoundingClientRect().left;
 		var cellLeft  = cell.getBoundingClientRect().left;
 		var current   = this._currentTranslate();
 		var raw       = ( cellLeft - trackLeft ) - current;
 
-		// Cell alignment
 		if ( this.config.cellAlign === 'center' ) {
 			raw -= ( this.wrapper.offsetWidth - cell.offsetWidth ) / 2;
 		} else if ( this.config.cellAlign === 'right' ) {
 			raw -= ( this.wrapper.offsetWidth - cell.offsetWidth );
 		}
 
-		// Contain — never scroll before start or past end
 		if ( this.config.contain ) {
 			var maxScroll = Math.max( 0, this.track.scrollWidth - this.wrapper.offsetWidth );
 			raw = clamp( raw, 0, maxScroll );
@@ -272,8 +319,11 @@
 		var cellIdx = g > 1 ? idx * g : idx;
 		var offset  = this._offsetForCell( cellIdx );
 
-		setTransition( this.track, animate === false ? 'none' : 'transform 0.4s cubic-bezier(0.23,1,0.32,1)' );
-		setTransform(  this.track, 'translateX(' + ( -offset ) + 'px)' );
+		setTransition( this.track, animate === false
+			? 'none'
+			: 'transform 0.4s cubic-bezier(0.23,1,0.32,1)'
+		);
+		setTransform( this.track, 'translateX(' + ( -offset ) + 'px)' );
 
 		this._updateDots();
 		this._updateButtons();
@@ -283,8 +333,13 @@
 		if ( this._navTarget ) this._navTarget.goTo( idx );
 	};
 
-	LDCarousel.prototype.next     = function () { this.goTo( this.index + 1 ); };
-	LDCarousel.prototype.previous = function () { this.goTo( this.index - 1 ); };
+	LDCarousel.prototype.next = function () {
+		this.goTo( this.index + 1 );
+	};
+
+	LDCarousel.prototype.previous = function () {
+		this.goTo( this.index - 1 );
+	};
 
 	LDCarousel.prototype._updateDots = function () {
 		if ( !this.dotsWrap ) return;
@@ -301,8 +356,8 @@
 			this.btnNext.disabled = false;
 			return;
 		}
-		this.btnPrev.disabled = this.index <= 0;
-		this.btnNext.disabled = this.index >= this._groupCount() - 1;
+		this.btnPrev.disabled = ( this.index <= 0 );
+		this.btnNext.disabled = ( this.index >= this._groupCount() - 1 );
 	};
 
 	LDCarousel.prototype._announce = function () {
@@ -321,10 +376,10 @@
 
 	LDCarousel.prototype._lazyLoadVisible = function () {
 		if ( !this.config.lazyLoad ) return;
-		var ahead   = typeof this.config.lazyLoad === 'number' ? this.config.lazyLoad : 1;
-		var g       = getGroupCells( this.config );
-		var start   = this.index * g;
-		var end     = Math.min( this.cells.length, start + g + ahead );
+		var ahead = typeof this.config.lazyLoad === 'number' ? this.config.lazyLoad : 1;
+		var g     = getGroupCells( this.config );
+		var start = this.index * g;
+		var end   = Math.min( this.cells.length, start + g + ahead );
 		for ( var i = start; i < end; i++ ) {
 			if ( this.cells[i] ) {
 				this.cells[i].querySelectorAll( 'img[data-src]' ).forEach( function(img) {
@@ -348,26 +403,19 @@
 
 	/* ─── Drag ─────────────────────────────────────────────── */
 
-	LDCarousel.prototype._currentTranslate = function () {
-		var m = window.getComputedStyle( this.track ).transform;
-		if ( !m || m === 'none' ) return 0;
-		var parts = m.match( /matrix.*\((.+)\)/ );
-		return parts ? parseFloat( parts[1].split(',')[4] ) : 0;
-	};
-
 	LDCarousel.prototype._bindDrag = function () {
 		var self = this;
 		var el   = this.track;
 
 		function start( x, y, touch ) {
-			self.isTouch              = touch;
-			self.isDragging           = true;
-			self.startX               = x;
-			self.startY               = y;
-			self.dragOriginTranslate  = self._currentTranslate();
-			self.lastX                = x;
-			self.lastTime             = Date.now();
-			self.velocity             = 0;
+			self.isTouch             = touch;
+			self.isDragging          = true;
+			self.startX              = x;
+			self.startY              = y;
+			self.dragOriginTranslate = self._currentTranslate();
+			self.lastX               = x;
+			self.lastTime            = Date.now();
+			self.velocity            = 0;
 			setTransition( el, 'none' );
 			self._stopAutoPlay();
 		}
@@ -381,24 +429,15 @@
 			self.velocity = ( x - self.lastX ) / dt;
 			self.lastX    = x;
 			self.lastTime = now;
-			// Cancel if more vertical than horizontal
+
 			if ( Math.abs(dy) > Math.abs(dx) && Math.abs(dx) < ( self.config.dragThreshold || 3 ) ) {
 				self.isDragging = false;
 				return;
 			}
-			var newX = self.dragOriginTranslate + dx;
 
-			// Hard clamp — never drag past the start (left edge stays locked)
-			var maxLeft = 0;
-			if ( !self.config.rightToLeft ) {
-				newX = Math.min( newX, maxLeft );
-			}
-			// Never drag past the end
-			var maxRight = -( Math.max( 0, self.track.scrollWidth - self.wrapper.offsetWidth ) );
-			if ( !self.config.rightToLeft ) {
-				newX = Math.max( newX, maxRight );
-			}
-
+			var newX    = self.dragOriginTranslate + dx;
+			var maxLeft = -( Math.max( 0, self.track.scrollWidth - self.wrapper.offsetWidth ) );
+			newX = clamp( newX, maxLeft, 0 );
 			setTransform( el, 'translateX(' + newX + 'px)' );
 		}
 
@@ -408,9 +447,9 @@
 			var dx = x - self.startX;
 
 			if ( self.config.freeScroll ) {
-				var dest = self.dragOriginTranslate + dx + self.velocity * 150;
-				var max  = -( Math.max( 0, self.track.scrollWidth - self.wrapper.offsetWidth ) );
-				dest = clamp( dest, max, 0 );
+				var dest    = self.dragOriginTranslate + dx + self.velocity * 150;
+				var maxLeft = -( Math.max( 0, self.track.scrollWidth - self.wrapper.offsetWidth ) );
+				dest = clamp( dest, maxLeft, 0 );
 				setTransition( el, 'transform 0.5s cubic-bezier(0.23,1,0.32,1)' );
 				setTransform(  el, 'translateX(' + dest + 'px)' );
 				return;
@@ -425,12 +464,10 @@
 			if ( self.config.autoPlay ) self._startAutoPlay();
 		}
 
-		// Mouse
 		el.addEventListener( 'mousedown', function(e) { start( e.clientX, e.clientY, false ); } );
 		window.addEventListener( 'mousemove', function(e) { if ( self.isDragging && !self.isTouch ) move( e.clientX, e.clientY ); } );
 		window.addEventListener( 'mouseup',   function(e) { if ( !self.isTouch ) end( e.clientX ); } );
 
-		// Touch
 		el.addEventListener( 'touchstart', function(e) {
 			var t = e.touches[0]; start( t.clientX, t.clientY, true );
 		}, { passive: true } );
@@ -488,15 +525,11 @@
 
 	function init() {
 		var configs = window.LDSliderConfigs || {};
-
-		Object.keys( configs ).forEach( function( key ) {
-			// key = "ld-slider-1", matches class on wrapper div
-			var wrappers = document.querySelectorAll( '.' + key );
-			wrappers.forEach( function( wrapper ) {
+		Object.keys( configs ).forEach( function(key) {
+			document.querySelectorAll( '.' + key ).forEach( function(wrapper) {
 				if ( !wrapper._ldSlider ) {
-					// Add base wrapper class for CSS scoping
 					wrapper.classList.add( 'ld-slider-wrapper' );
-					wrapper._ldSlider = new LDCarousel( wrapper, configs[ key ] );
+					wrapper._ldSlider = new LDCarousel( wrapper, configs[key] );
 				}
 			});
 		});
@@ -508,7 +541,6 @@
 		init();
 	}
 
-	// Public API
 	window.LDSliders = { init: init, LDCarousel: LDCarousel };
 
 }());

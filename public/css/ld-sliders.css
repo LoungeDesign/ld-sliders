@@ -1,16 +1,16 @@
-/* LD Sliders — Public Styles v1.2.0
+/* LD Sliders — Public Styles v1.2.1
    Lounge Design (loungedesign.co.uk) */
 
-/* ── Wrapper ────────────────────────────────────────────── */
+/* ── Wrapper ─────────────────────────────────────────────── */
 .ld-slider-wrapper {
 	position: relative;
-	overflow: hidden;         /* default — clips both edges    */
+	overflow: hidden;
 	user-select: none;
 	-webkit-user-select: none;
 	outline: none;
 }
 
-/* ── Track ──────────────────────────────────────────────── */
+/* ── Track ───────────────────────────────────────────────── */
 .ld-carousel {
 	display: flex;
 	align-items: stretch;
@@ -21,14 +21,14 @@
 	cursor: grabbing;
 }
 
-/* ── Cells ──────────────────────────────────────────────── */
+/* ── Cells ───────────────────────────────────────────────── */
 .ld-carousel-cell {
 	flex-shrink: 0;
 	box-sizing: border-box;
 	min-height: 1px;
 }
 
-/* ── Prev / Next ────────────────────────────────────────── */
+/* ── Prev / Next buttons ─────────────────────────────────── */
 .ld-slider-btn {
 	position: absolute;
 	top: 50%;
@@ -46,19 +46,23 @@
 	cursor: pointer;
 	transition: background .2s;
 	padding: 0;
+	line-height: 1;
 }
-.ld-slider-btn:hover   { background: rgba(0,0,0,.75); }
+.ld-slider-btn:hover    { background: rgba(0,0,0,.75); }
 .ld-slider-btn:disabled { opacity: .35; cursor: default; }
-.ld-slider-btn svg     { width: 20px; height: 20px; display: block; }
-.ld-slider-btn--prev   { left: 12px; }
-.ld-slider-btn--next   { right: 12px; }
+.ld-slider-btn svg      { width: 20px; height: 20px; display: block; }
+.ld-slider-btn--prev    { left: 12px; }
+.ld-slider-btn--next    { right: 12px; }
 
-/* ── Dots ───────────────────────────────────────────────── */
+/* ── Dots ────────────────────────────────────────────────── */
+/* Fix 4: dots sit OUTSIDE the wrapper as a sibling element  */
 .ld-slider-dots {
 	display: flex;
 	justify-content: center;
+	align-items: center;
 	gap: 8px;
 	padding: 12px 0 4px;
+	width: 100%;
 }
 .ld-slider-dot {
 	width: 10px;
@@ -69,13 +73,14 @@
 	padding: 0;
 	cursor: pointer;
 	transition: background .2s, transform .2s;
+	display: block;
 }
 .ld-slider-dot.is-selected {
 	background: #333;
 	transform: scale(1.25);
 }
 
-/* ── Accessibility ──────────────────────────────────────── */
+/* ── Accessibility ───────────────────────────────────────── */
 .ld-sr-only {
 	position: absolute;
 	width: 1px; height: 1px;
@@ -84,7 +89,7 @@
 	white-space: nowrap;
 }
 
-/* ── Reduced motion ─────────────────────────────────────── */
+/* ── Reduced motion ──────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
 	.ld-carousel { transition: none !important; }
 }
